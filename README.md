@@ -6,7 +6,9 @@ docker-compose exec web bash
 
 # In web container
 
-cd webapp/sql && ./init.sh
+cd sql && ./init.sh
+
+cd webapp/ruby
 
 rackup -o 0.0.0.0
 ```
