@@ -9,7 +9,7 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 
 RUN apt-get update -qq && \
     apt-get install -y build-essential \
-                        libpq-dev |
+                        libpq-dev \
                         default-mysql-client
 
 RUN mkdir /app
