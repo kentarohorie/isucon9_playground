@@ -402,7 +402,7 @@ module Isucari
 
       items = if item_id > 0 && created_at > 0
         # paging
-        db.xquery("SELECT id, seller_id,  FROM `items` WHERE `seller_id` = ? AND `status` IN (?, ?, ?) AND `created_at` <= ? AND `id` < ? ORDER BY `created_at` DESC, `id` DESC LIMIT #{ITEMS_PER_PAGE + 1}", user_simple['id'], ITEM_STATUS_ON_SALE, ITEM_STATUS_TRADING, ITEM_STATUS_SOLD_OUT, Time.at(created_at), item_id)
+        db.xquery("SELECT * FROM `items` WHERE `seller_id` = ? AND `status` IN (?, ?, ?) AND `created_at` <= ? AND `id` < ? ORDER BY `created_at` DESC, `id` DESC LIMIT #{ITEMS_PER_PAGE + 1}", user_simple['id'], ITEM_STATUS_ON_SALE, ITEM_STATUS_TRADING, ITEM_STATUS_SOLD_OUT, Time.at(created_at), item_id)
       else
         # 1st page
         db.xquery("SELECT * FROM `items` WHERE `seller_id` = ? AND `status` IN (?, ?, ?) ORDER BY `created_at` DESC, `id` DESC LIMIT #{ITEMS_PER_PAGE + 1}", user_simple['id'], ITEM_STATUS_ON_SALE, ITEM_STATUS_TRADING, ITEM_STATUS_SOLD_OUT)
