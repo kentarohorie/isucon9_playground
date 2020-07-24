@@ -1,0 +1,29 @@
+version: '3'
+services:
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: isucari
+      MYSQL_USER: isucari
+      MYSQL_PASSWORD: isucari
+    ports:
+      - '3306:3306'
+    volumes:
+      - data:/var/lib/mysql
+    command: mysqld --character-set-server=utf8mb4 --explicit_defaults_for_timestamp=true
+  web:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      MYSQL_HOST: db
+      MYSQL_USER: root
+    ports:
+      - "9999:9292"
+    links:
+      - db
+    stdin_open: true
+    tty: true
+volumes:
+  data:
