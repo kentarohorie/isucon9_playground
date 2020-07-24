@@ -1,4 +1,4 @@
-p&d 
+p&d
 
 setup
 ```bash
@@ -10,7 +10,7 @@ cd sql && ./init.sh
 
 cd webapp/ruby
 
-rackup -o 0.0.0.0
+rackup -o 0.0.0.0 -p 8000
 
 # 画像設定
 $ cd webapp/ruby/public
