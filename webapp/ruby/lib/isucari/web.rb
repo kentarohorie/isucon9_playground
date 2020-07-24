@@ -39,6 +39,7 @@ module Isucari
     TRANSACTIONS_PER_PAGE = 10
 
     BCRYPT_COST = 10
+    ITEM_LIST_BASE_SQL = "SELECT i.id, i.seller_id, u.account_name, u.num_sell_items, i.status, i.name, i.price, i.image_name, i.category_id, i.created_at FROM `items` as i LEFT JOIN users as u ON i.seller_id = u.id "
 
     configure :development do
       require 'sinatra/reloader'
@@ -173,10 +174,10 @@ module Isucari
 
       items = if item_id > 0 && created_at > 0
         # paging
-        db.xquery("SELECT i.id, i.seller_id, u.account_name, u.num_sell_items, i.status, i.name, i.price, i.image_name, i.category_id, i.created_at FROM `items` as i LEFT JOIN `users` as u ON u.id = i.seller_id WHERE i.`status` IN (?, ?) AND (i.`created_at` < ?  OR (i.`created_at` <= ? AND `id` < ?)) ORDER BY i.`created_at` DESC, i.`id` DESC LIMIT #{ITEMS_PER_PAGE + 1}", ITEM_STATUS_ON_SALE, ITEM_STATUS_SOLD_OUT, Time.at(created_at), Time.at(created_at), item_id)
+        db.xquery(ITEM_LIST_BASE_SQL + "WHERE i.`status` IN (?, ?) AND (i.`created_at` < ?  OR (i.`created_at` <= ? AND `id` < ?)) ORDER BY i.`created_at` DESC, i.`id` DESC LIMIT #{ITEMS_PER_PAGE + 1}", ITEM_STATUS_ON_SALE, ITEM_STATUS_SOLD_OUT, Time.at(created_at), Time.at(created_at), item_id)
       else
         # 1st page
-        db.xquery("SELECT i.id, i.seller_id, u.account_name, u.num_sell_items, i.status, i.name, i.price, i.image_name, i.category_id, i.created_at FROM `items` as i LEFT JOIN `users` as u ON u.id = i.seller_id WHERE i.`status` IN (?, ?) ORDER BY i.`created_at` DESC, i.`id` DESC LIMIT #{ITEMS_PER_PAGE + 1}", ITEM_STATUS_ON_SALE, ITEM_STATUS_SOLD_OUT)
+        db.xquery(ITEM_LIST_BASE_SQL + "WHERE i.`status` IN (?, ?) ORDER BY i.`created_at` DESC, i.`id` DESC LIMIT #{ITEMS_PER_PAGE + 1}", ITEM_STATUS_ON_SALE, ITEM_STATUS_SOLD_OUT)
       end
 
       item_simples = items.map do |item|
@@ -291,7 +292,7 @@ module Isucari
       items = if item_id > 0 && created_at > 0
         # paging
         begin
-          db.xquery("SELECT * FROM `items` WHERE (`seller_id` = ? OR `buyer_id` = ?) AND `status` IN (?, ?, ?, ?, ?) AND (`created_at` < ?  OR (`created_at` <= ? AND `id` < ?)) ORDER BY `created_at` DESC, `id` DESC LIMIT #{TRANSACTIONS_PER_PAGE + 1}", user['id'], user['id'], ITEM_STATUS_ON_SALE, ITEM_STATUS_TRADING, ITEM_STATUS_SOLD_OUT, ITEM_STATUS_CANCEL, ITEM_STATUS_STOP, Time.at(created_at), Time.at(created_at), item_id)
+          db.xquery(ITEM_LIST_BASE_SQL + "WHERE (i.`seller_id` = ? OR i.`buyer_id` = ?) AND i.`status` IN (?, ?, ?, ?, ?) AND (i.`created_at` < ?  OR (i.`created_at` <= ? AND i.`id` < ?)) ORDER BY i.`created_at` DESC, i.`id` DESC LIMIT #{TRANSACTIONS_PER_PAGE + 1}", user['id'], user['id'], ITEM_STATUS_ON_SALE, ITEM_STATUS_TRADING, ITEM_STATUS_SOLD_OUT, ITEM_STATUS_CANCEL, ITEM_STATUS_STOP, Time.at(created_at), Time.at(created_at), item_id)
         rescue
           db.query('ROLLBACK')
           halt_with_error 500, 'db error'
@@ -299,7 +300,7 @@ module Isucari
       else
         # 1st page
         begin
-          db.xquery("SELECT * FROM `items` WHERE (`seller_id` = ? OR `buyer_id` = ?) AND `status` IN (?, ?, ?, ?, ?) ORDER BY `created_at` DESC, `id` DESC LIMIT #{TRANSACTIONS_PER_PAGE + 1}", user['id'], user['id'], ITEM_STATUS_ON_SALE, ITEM_STATUS_TRADING, ITEM_STATUS_SOLD_OUT, ITEM_STATUS_CANCEL, ITEM_STATUS_STOP)
+          db.xquery(ITEM_LIST_BASE_SQL + "WHERE (i.`seller_id` = ? OR i.`buyer_id` = ?) AND i.`status` IN (?, ?, ?, ?, ?) ORDER BY i.`created_at` DESC, i.`id` DESC LIMIT #{TRANSACTIONS_PER_PAGE + 1}", user['id'], user['id'], ITEM_STATUS_ON_SALE, ITEM_STATUS_TRADING, ITEM_STATUS_SOLD_OUT, ITEM_STATUS_CANCEL, ITEM_STATUS_STOP)
         rescue
           db.query('ROLLBACK')
           halt_with_error 500, 'db error'
@@ -307,8 +308,7 @@ module Isucari
       end
 
       item_details = items.map do |item|
-        seller = get_user_simple_by_id(item['seller_id'])
-        if seller.nil?
+        if u.account_name.nil?
           db.query('ROLLBACK')
           halt_with_error 404, 'seller not found'
         end
@@ -318,6 +318,12 @@ module Isucari
           db.query('ROLLBACK')
           halt_with_error 404, 'category not found'
         end
+
+        seller = {
+          'id' => item['seller_id'], 
+          'account_name' => item['account_name'],
+          'num_sell_items' => item['num_sell_items']
+        }
 
         item_detail = {
           'id' => item['id'],
@@ -402,18 +408,23 @@ module Isucari
 
       items = if item_id > 0 && created_at > 0
         # paging
-        db.xquery("SELECT * FROM `items` WHERE `seller_id` = ? AND `status` IN (?, ?, ?) AND `created_at` <= ? AND `id` < ? ORDER BY `created_at` DESC, `id` DESC LIMIT #{ITEMS_PER_PAGE + 1}", user_simple['id'], ITEM_STATUS_ON_SALE, ITEM_STATUS_TRADING, ITEM_STATUS_SOLD_OUT, Time.at(created_at), item_id)
+        db.xquery(ITEM_LIST_BASE_SQL + "WHERE i.`seller_id` = ? AND i.`status` IN (?, ?, ?) AND i.`created_at` <= ? AND i.`id` < ? ORDER BY i.`created_at` DESC, i.`id` DESC LIMIT #{ITEMS_PER_PAGE + 1}", user_simple['id'], ITEM_STATUS_ON_SALE, ITEM_STATUS_TRADING, ITEM_STATUS_SOLD_OUT, Time.at(created_at), item_id)
       else
         # 1st page
-        db.xquery("SELECT * FROM `items` WHERE `seller_id` = ? AND `status` IN (?, ?, ?) ORDER BY `created_at` DESC, `id` DESC LIMIT #{ITEMS_PER_PAGE + 1}", user_simple['id'], ITEM_STATUS_ON_SALE, ITEM_STATUS_TRADING, ITEM_STATUS_SOLD_OUT)
+        db.xquery(ITEM_LIST_BASE_SQL + "WHERE i.`seller_id` = ? AND i.`status` IN (?, ?, ?) ORDER BY i.`created_at` DESC, i.`id` DESC LIMIT #{ITEMS_PER_PAGE + 1}", user_simple['id'], ITEM_STATUS_ON_SALE, ITEM_STATUS_TRADING, ITEM_STATUS_SOLD_OUT)
       end
 
       item_simples = items.map do |item|
-        seller = get_user_simple_by_id(item['seller_id'])
-        halt_with_error 404, 'seller not found' if seller.nil?
+        halt_with_error 404, 'seller not found' if item.account_name.nil?
 
         category = get_category_by_id(item['category_id'])
         halt_with_error 404, 'category not found' if category.nil?
+
+        seller = {
+          'id' => item['seller_id'], 
+          'account_name' => item['account_name'],
+          'num_sell_items' => item['num_sell_items']
+        }
 
         {
           'id' => item['id'],
