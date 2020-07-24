@@ -181,7 +181,7 @@ module Isucari
       end
 
       item_simples = items.map do |item|
-        halt_with_error 404, 'seller not found' if item.account_name.nil?
+        halt_with_error 404, 'seller not found' if item['account_name'].nil?
 
         category = get_category_by_id(item['category_id'])
         halt_with_error 404, 'category not found' if category.nil?
@@ -240,7 +240,7 @@ module Isucari
       end
 
       item_simples = items.map do |item|
-        halt_with_error 404, 'seller not found' if item.account_name.nil?
+        halt_with_error 404, 'seller not found' if item['account_name'].nil?
 
         category = get_category_by_id(item['category_id'])
         halt_with_error 404, 'category not found' if category.nil?
@@ -308,7 +308,7 @@ module Isucari
       end
 
       item_details = items.map do |item|
-        if u.account_name.nil?
+        if u['account_name'].nil?
           db.query('ROLLBACK')
           halt_with_error 404, 'seller not found'
         end
@@ -415,7 +415,7 @@ module Isucari
       end
 
       item_simples = items.map do |item|
-        halt_with_error 404, 'seller not found' if item.account_name.nil?
+        halt_with_error 404, 'seller not found' if item['account_name'].nil?
 
         category = get_category_by_id(item['category_id'])
         halt_with_error 404, 'category not found' if category.nil?
