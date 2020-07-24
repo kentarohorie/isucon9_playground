@@ -174,7 +174,7 @@ module Isucari
 
       items = if item_id > 0 && created_at > 0
         # paging
-        db.xquery(ITEM_LIST_BASE_SQL + "WHERE i.`status` IN (?, ?) AND (i.`created_at` < ?  OR (i.`created_at` <= ? AND `id` < ?)) ORDER BY i.`created_at` DESC, i.`id` DESC LIMIT #{ITEMS_PER_PAGE + 1}", ITEM_STATUS_ON_SALE, ITEM_STATUS_SOLD_OUT, Time.at(created_at), Time.at(created_at), item_id)
+        db.xquery(ITEM_LIST_BASE_SQL + "WHERE i.`status` IN (?, ?) AND (i.`created_at` < ?  OR (i.`created_at` <= ? AND i.`id` < ?)) ORDER BY i.`created_at` DESC, i.`id` DESC LIMIT #{ITEMS_PER_PAGE + 1}", ITEM_STATUS_ON_SALE, ITEM_STATUS_SOLD_OUT, Time.at(created_at), Time.at(created_at), item_id)
       else
         # 1st page
         db.xquery(ITEM_LIST_BASE_SQL + "WHERE i.`status` IN (?, ?) ORDER BY i.`created_at` DESC, i.`id` DESC LIMIT #{ITEMS_PER_PAGE + 1}", ITEM_STATUS_ON_SALE, ITEM_STATUS_SOLD_OUT)
@@ -308,7 +308,7 @@ module Isucari
       end
 
       item_details = items.map do |item|
-        if u['account_name'].nil?
+        if item['account_name'].nil?
           db.query('ROLLBACK')
           halt_with_error 404, 'seller not found'
         end
