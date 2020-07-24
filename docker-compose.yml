@@ -13,7 +13,9 @@ services:
       - data:/var/lib/mysql
     command: mysqld --character-set-server=utf8mb4 --explicit_defaults_for_timestamp=true
   web:
-    build: .
+    build:
+      context: webapp/ruby/.
+      dockerfile: ./Dockerfile
     volumes:
       - .:/app
     environment:
@@ -21,7 +23,7 @@ services:
       MYSQL_USER: root
       MYSQL_PASS: isucari
     ports:
-      - "9999:9292"
+      - "8000:9292"
     links:
       - db
     stdin_open: true
