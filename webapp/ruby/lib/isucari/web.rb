@@ -39,7 +39,7 @@ module Isucari
     TRANSACTIONS_PER_PAGE = 10
 
     BCRYPT_COST = 10
-    ITEM_LIST_BASE_SQL = "SELECT i.id, i.seller_id, u.account_name, u.num_sell_items, i.status, i.name, i.price, i.image_name, i.category_id, i.created_at FROM `items` as i LEFT JOIN users as u ON i.seller_id = u.id "
+    ITEM_LIST_BASE_SQL = "SELECT i.id, i.seller_id, i.buyer_id, u.account_name, u.num_sell_items, i.status, i.name, i.price, i.image_name, i.category_id, i.created_at FROM `items` as i LEFT JOIN users as u ON i.seller_id = u.id "
 
     configure :development do
       require 'sinatra/reloader'
