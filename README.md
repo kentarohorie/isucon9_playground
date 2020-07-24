@@ -11,6 +11,13 @@ cd sql && ./init.sh
 cd webapp/ruby
 
 rackup -o 0.0.0.0
+
+# 画像設定
+$ cd webapp/ruby/public
+# GitHub releases から initial.zip をダウンロード
+$ unzip initial.zip
+$ rm -rf upload
+$ mv v3_initial_data upload
 ```
 ---
 
